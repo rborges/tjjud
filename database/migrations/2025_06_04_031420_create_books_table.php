@@ -14,6 +14,7 @@ class CreateBooksTable extends Migration
             $table->string('publisher', 40)->comment('Nome da editora');
             $table->integer('edition')->comment('Número da edição do livro');
             $table->string('published_year', 4)->comment('Ano de publicação');
+            $table->decimal('price', 10, 2)->comment('Valor do livro (R$)');
             $table->timestamps();
         });
     }
