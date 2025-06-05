@@ -11,6 +11,7 @@ class Book extends Model
         'publisher',
         'edition',
         'published_year',
+        'price',
     ];
 
     // Livro tem muitos autores (N:N)

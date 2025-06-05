@@ -13,6 +13,7 @@ class BookValidator
             'publisher'       => 'required|string|max:40',
             'edition'         => 'required|integer|min:1',
             'published_year'  => 'required|digits:4',
+            'price'           => 'required|numeric|min:0',
         ]);
     }
 }
