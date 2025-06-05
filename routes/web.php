@@ -23,3 +23,8 @@ $router->group(['prefix' => 'subjects'], function () use ($router) {
     $router->put('/{id}', 'SubjectController@update');
     $router->delete('/{id}', 'SubjectController@destroy');
 });
+
+$router->get('/report/books-by-author', 'ReportController@booksByAuthor');
+
+$router->get('/report', 'ReportController@index');
+$router->get('/relatorio/pdf', 'ReportController@exportPdf');
