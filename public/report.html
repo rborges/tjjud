@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Relatório</title>
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="container-scroller d-flex">
+        <!-- Sidebar -->
+        <nav class="sidebar sidebar-offcanvas" id="sidebar">
+            <ul class="nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="books.html"><i class="bi bi-book nav-icon"></i><span
+                            class="menu-title">Livros</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="authors.html"><i class="bi bi-person nav-icon"></i><span
+                            class="menu-title">Autores</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="subjects.html"><i class="bi bi-tag nav-icon"></i><span
+                            class="menu-title">Assuntos</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="report.html"><i class="bi bi-file-earmark-text nav-icon"></i><span
+                            class="menu-title">Relatório</span></a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main content -->
+        <div class="main-panel flex-grow-1">
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h3 class="page-title">Relatório Geral</h3>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p>Use o botão abaixo para gerar e baixar o relatório completo do sistema.</p>
+                        <button class="btn btn-primary" onclick="baixarRelatorio()">
+                            <i class="bi bi-download"></i> Baixar Relatório (PDF)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <h5 class="mb-3">Resumo por Autor</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Autor</th>
+                                        <th>Título</th>
+                                        <th>Editora</th>
+                                        <th>Edição</th>
+                                        <th>Ano</th>
+                                        <th>Preço</th>
+                                        <th>Assuntos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabela-relatorio"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/vendors/js/vendor.bundle.base.js"></script>
+    <script src="assets/js/off-canvas.js"></script>
+    <script src="assets/js/hoverable-collapse.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function baixarRelatorio() {
+            window.open('http://localhost:8000/relatorio/pdf', '_blank');
+        }
+
+        function carregarRelatorio() {
+            axios.get('http://localhost:8000/report')
+                .then(response => {
+                    const tabela = document.getElementById('tabela-relatorio');
+                    tabela.innerHTML = '';
+
+                    response.data.forEach(autor => {
+                        autor.livros.forEach(livro => {
+                            const linha = `
+                <tr>
+                  <td>${autor.autor}</td>
+                  <td>${livro.título}</td>
+                  <td>${livro.editora}</td>
+                  <td>${livro.edição}</td>
+                  <td>${livro.ano_publicação}</td>
+                  <td>R$ ${parseFloat(livro.preço).toFixed(2).replace('.', ',')}</td>
+                  <td>${livro.assuntos.join(', ')}</td>
+                </tr>
+              `;
+                            tabela.innerHTML += linha;
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar relatório:', error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarRelatorio);
+    </script>
+</body>
+
+</html>
