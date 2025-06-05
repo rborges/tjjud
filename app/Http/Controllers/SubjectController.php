@@ -2,62 +2,111 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\Contracts\SubjectServiceInterface;
 use App\Helpers\ValidatorHelper;
+use App\Exceptions\NotFoundException;
 
+/**
+ * Controller responsável pelas operações de CRUD de assuntos.
+ */
 class SubjectController extends Controller
 {
-    protected $service;
+    protected SubjectServiceInterface $service;
 
     public function __construct(SubjectServiceInterface $service)
     {
         $this->service = $service;
     }
 
-    public function index()
+    /**
+     * Lista todos os assuntos.
+     *
+     * @return JsonResponse
+     */
+    public function index(): JsonResponse
     {
         return response()->json($this->service->list());
     }
 
-    public function show($id)
+    /**
+     * Retorna um assunto específico pelo ID.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show(int $id): JsonResponse
     {
-        return response()->json($this->service->get($id));
+        try {
+            return response()->json($this->service->get($id));
+        } catch (NotFoundException $e) {
+            return response()->json(['error' => $e->getMessage()], 404);
+        }
     }
 
-    public function store(Request $request)
+    /**
+     * Cria um novo assunto.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function store(Request $request): JsonResponse
     {
         $validator = ValidatorHelper::validate($request->all(), [
             'description' => 'required|string|max:20',
             'book_ids' => 'array',
-            'book_ids.*' => 'integer|exists:books,id'
+            'book_ids.*' => 'integer|exists:books,id',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        return response()->json($this->service->create($request->all()), 201);
+        $subject = $this->service->create($request->all());
+        return response()->json($subject, 201);
     }
 
-    public function update($id, Request $request)
+    /**
+     * Atualiza um assunto existente.
+     *
+     * @param int $id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function update(int $id, Request $request): JsonResponse
     {
         $validator = ValidatorHelper::validate($request->all(), [
             'description' => 'required|string|max:20',
             'book_ids' => 'array',
-            'book_ids.*' => 'integer|exists:books,id'
+            'book_ids.*' => 'integer|exists:books,id',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        return response()->json($this->service->update($id, $request->all()));
+        try {
+            $subject = $this->service->update($id, $request->all());
+            return response()->json($subject);
+        } catch (NotFoundException $e) {
+            return response()->json(['error' => $e->getMessage()], 404);
+        }
     }
 
-    public function destroy($id)
+    /**
+     * Remove um assunto.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function destroy(int $id): JsonResponse
     {
-        $this->service->delete($id);
-        return response()->json(null, 204);
+        try {
+            $this->service->delete($id);
+            return response()->json(null, 204);
+        } catch (NotFoundException $e) {
+            return response()->json(['error' => $e->getMessage()], 404);
+        }
     }
 }
