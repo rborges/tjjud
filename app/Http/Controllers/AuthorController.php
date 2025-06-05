@@ -2,59 +2,118 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use App\Services\Contracts\AuthorServiceInterface;
+use App\Exceptions\NotFoundException;
 
+/**
+ * Class AuthorController
+ *
+ * Controlador responsável pelas operações CRUD de autores.
+ */
 class AuthorController extends Controller
 {
-    protected $service;
+    protected AuthorServiceInterface $service;
 
+    /**
+     * AuthorController constructor.
+     *
+     * @param AuthorServiceInterface $service
+     */
     public function __construct(AuthorServiceInterface $service)
     {
         $this->service = $service;
     }
 
-    public function index()
+    /**
+     * Lista todos os autores.
+     *
+     * @return JsonResponse
+     */
+    public function index(): JsonResponse
     {
         return response()->json($this->service->list());
     }
 
-    public function show($id)
+    /**
+     * Retorna os dados de um autor específico.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show(int $id): JsonResponse
     {
-        return response()->json($this->service->get($id));
+        try {
+            $author = $this->service->get($id);
+            return response()->json($author);
+        } catch (NotFoundException $e) {
+            return response()->json(['error' => 'Autor não encontrado'], 404);
+        }
     }
 
-    public function store(Request $request)
+    /**
+     * Cadastra um novo autor.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function store(Request $request): JsonResponse
     {
-        $data = $request->all();
-
-        $validator = Validator::make($data, [
-            'name' => 'required|string|max:20',
-            // Opcional: permitir books no momento da criação
-            'book_ids' => 'array',
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:40',
+            'book_ids' => 'sometimes|array',
             'book_ids.*' => 'integer|exists:books,id',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Criação via service
-        $author = $this->service->create($data);
+        $author = $this->service->create($validator->validated());
 
         return response()->json($author, 201);
     }
 
-    public function update($id, Request $request)
+    /**
+     * Atualiza os dados de um autor.
+     *
+     * @param int $id
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function update(int $id, Request $request): JsonResponse
     {
-        $request->validate(['name' => 'required|string|max:40']);
-        return response()->json($this->service->update($id, $request->all()));
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:40',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $author = $this->service->update($id, $validator->validated());
+            return response()->json($author);
+        } catch (NotFoundException $e) {
+            return response()->json(['error' => 'Autor não encontrado'], 404);
+        }
     }
 
-    public function destroy($id)
+    /**
+     * Remove um autor.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function destroy(int $id): JsonResponse
     {
-        $this->service->delete($id);
-        return response()->json(null, 204);
+        try {
+            $this->service->delete($id);
+            return response()->json(null, 204);
+        } catch (NotFoundException $e) {
+            return response()->json(['error' => 'Autor não encontrado'], 404);
+        }
     }
 }
