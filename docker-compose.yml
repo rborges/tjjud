@@ -15,11 +15,6 @@ services:
       - db
     networks:
       - app-network
-    command: >
-      bash -c "composer install &&
-               if [ ! -f .env ]; then cp .env.example .env; fi &&
-               php artisan migrate &&
-               php -S 0.0.0.0:8000 -t public"
 
   db:
     image: mysql:8.0
