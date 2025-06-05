@@ -15,3 +15,11 @@ $router->group(['prefix' => 'authors'], function () use ($router) {
     $router->put('/{id}', 'AuthorController@update');
     $router->delete('/{id}', 'AuthorController@destroy');
 });
+
+$router->group(['prefix' => 'subjects'], function () use ($router) {
+    $router->get('/', 'SubjectController@index');
+    $router->get('/{id}', 'SubjectController@show');
+    $router->post('/', 'SubjectController@store');
+    $router->put('/{id}', 'SubjectController@update');
+    $router->delete('/{id}', 'SubjectController@destroy');
+});
