@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Livros</title>
+  <link href="assets/css/style.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container-scroller d-flex">
+    <!-- Sidebar -->
+    <nav class="sidebar sidebar-offcanvas" id="sidebar">
+      <ul class="nav">
+        <li class="nav-item">
+          <a class="nav-link" href="books.html">
+            <i class="bi bi-book nav-icon"></i>
+            <span class="menu-title">Livros</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="authors.html">
+            <i class="bi bi-person nav-icon"></i>
+            <span class="menu-title">Autores</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="subjects.html">
+            <i class="bi bi-tag nav-icon"></i>
+            <span class="menu-title">Assuntos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="report.html">
+            <i class="bi bi-file-earmark-text nav-icon"></i>
+            <span class="menu-title">Relatório</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Main content -->
+    <div class="main-panel flex-grow-1">
+      <div class="content-wrapper">
+        <div class="page-header">
+          <h3 class="page-title">Cadastro de Livros</h3>
+        </div>
+        <div id="content">
+          <form id="form-livro" class="mb-4">
+            <div class="row">
+              <div class="col-md-4">
+                <label for="titulo">Título</label>
+                <input type="text" class="form-control" id="titulo" required>
+              </div>
+              <div class="col-md-4">
+                <label for="editora">Editora</label>
+                <input type="text" class="form-control" id="editora" required>
+              </div>
+              <div class="col-md-2">
+                <label for="edicao">Edição</label>
+                <input type="number" class="form-control" id="edicao" required>
+              </div>
+              <div class="col-md-2">
+                <label for="ano">Ano</label>
+                <input type="text" class="form-control" id="ano" maxlength="4" required>
+              </div>
+              <div class="col-md-3 mt-2">
+                <label for="preco">Preço</label>
+                <input type="number" class="form-control" id="preco" step="0.01" required>
+              </div>
+            </div>
+            <div class="mt-3">
+              <button type="submit" class="btn btn-success">Salvar Livro</button>
+            </div>
+          </form>
+
+          <button onclick="carregarLivros()" class="btn btn-primary mb-3">Atualizar Lista</button>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Editora</th>
+                <th>Edição</th>
+                <th>Ano</th>
+                <th>Preço (R$)</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-livros">
+              <!-- Dados inseridos via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/vendors/js/vendor.bundle.base.js"></script>
+  <script src="assets/js/off-canvas.js"></script>
+  <script src="assets/js/hoverable-collapse.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    function carregarLivros() {
+      axios.get('http://localhost:8000/books')
+        .then(response => {
+          const livros = response.data;
+          const tabela = document.getElementById('tabela-livros');
+          tabela.innerHTML = '';
+          livros.forEach(livro => {
+            tabela.innerHTML += `
+              <tr>
+                <td>${livro.id}</td>
+                <td>${livro.title}</td>
+                <td>${livro.publisher}</td>
+                <td>${livro.edition}</td>
+                <td>${livro.published_year}</td>
+                <td>${parseFloat(livro.price).toFixed(2).replace('.', ',')}</td>
+              </tr>
+            `;
+          });
+        })
+        .catch(error => {
+          console.error('Erro ao carregar livros:', error);
+        });
+    }
+
+    document.getElementById('form-livro').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const novoLivro = {
+        title: document.getElementById('titulo').value,
+        publisher: document.getElementById('editora').value,
+        edition: parseInt(document.getElementById('edicao').value),
+        published_year: document.getElementById('ano').value,
+        price: parseFloat(document.getElementById('preco').value),
+        author_ids: [],
+        subject_ids: []
+      };
+
+      axios.post('http://localhost:8000/books', novoLivro)
+        .then(() => {
+          alert('Livro cadastrado com sucesso!');
+          carregarLivros();
+          document.getElementById('form-livro').reset();
+        })
+        .catch(error => {
+          console.error('Erro ao salvar livro:', error);
+          alert('Erro ao salvar o livro.');
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', carregarLivros);
+  </script>
+</body>
+
+</html>
