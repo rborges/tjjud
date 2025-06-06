@@ -13,8 +13,16 @@ use App\Exceptions\NotFoundException;
  */
 class SubjectController extends Controller
 {
+    /**
+     * @var SubjectServiceInterface
+     */
     protected SubjectServiceInterface $service;
 
+    /**
+     * Injeta o serviço de assuntos.
+     *
+     * @param SubjectServiceInterface $service
+     */
     public function __construct(SubjectServiceInterface $service)
     {
         $this->service = $service;
@@ -63,7 +71,8 @@ class SubjectController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $subject = $this->service->create($request->all());
+        $validated = $validator->validated();
+        $subject = $this->service->create($validated);
         return response()->json($subject, 201);
     }
 
@@ -87,7 +96,8 @@ class SubjectController extends Controller
         }
 
         try {
-            $subject = $this->service->update($id, $request->all());
+            $validated = $validator->validated();
+            $subject = $this->service->update($id, $validated);
             return response()->json($subject);
         } catch (NotFoundException $e) {
             return response()->json(['error' => $e->getMessage()], 404);

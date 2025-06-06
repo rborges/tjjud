@@ -5,12 +5,23 @@ namespace App\Services;
 use App\Repositories\Contracts\AuthorRepositoryInterface;
 use App\Services\Contracts\AuthorServiceInterface;
 use App\Exceptions\NotFoundException;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\Author;
 
+/**
+ * Serviço responsável pelas regras de negócio relacionadas à entidade Author.
+ */
 class AuthorService implements AuthorServiceInterface
 {
+    /**
+     * @var AuthorRepositoryInterface
+     */
     protected AuthorRepositoryInterface $repo;
 
     /**
+     * Injeta o repositório de autores.
+     *
      * @param AuthorRepositoryInterface $repo
      */
     public function __construct(AuthorRepositoryInterface $repo)
@@ -21,9 +32,9 @@ class AuthorService implements AuthorServiceInterface
     /**
      * Retorna a lista de todos os autores.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection<Author>
      */
-    public function list()
+    public function list(): Collection
     {
         return $this->repo->all();
     }
@@ -32,15 +43,15 @@ class AuthorService implements AuthorServiceInterface
      * Retorna os dados de um autor específico.
      *
      * @param int $id
-     * @return \App\Models\Author
+     * @return Author
      *
      * @throws NotFoundException
      */
-    public function get($id)
+    public function get(int $id): Author
     {
         try {
             return $this->repo->find($id);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             throw new NotFoundException('Autor não encontrado.');
         }
     }
@@ -49,9 +60,9 @@ class AuthorService implements AuthorServiceInterface
      * Cria um novo autor e relaciona livros, se fornecidos.
      *
      * @param array $data
-     * @return \App\Models\Author
+     * @return Author
      */
-    public function create(array $data)
+    public function create(array $data): Author
     {
         $author = $this->repo->create([
             'name' => $data['name'],
@@ -69,17 +80,18 @@ class AuthorService implements AuthorServiceInterface
      *
      * @param int $id
      * @param array $data
-     * @return \App\Models\Author
+     * @return Author
      *
      * @throws NotFoundException
      */
-    public function update($id, array $data)
+    public function update(int $id, array $data): Author
     {
         try {
             $author = $this->repo->find($id);
             $author->update($data);
+
             return $author;
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             throw new NotFoundException('Autor não encontrado para atualização.');
         }
     }
@@ -92,11 +104,11 @@ class AuthorService implements AuthorServiceInterface
      *
      * @throws NotFoundException
      */
-    public function delete($id)
+    public function delete(int $id): ?bool
     {
         try {
             return $this->repo->delete($id);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             throw new NotFoundException('Autor não encontrado para exclusão.');
         }
     }

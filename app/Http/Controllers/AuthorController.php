@@ -4,9 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use App\Services\Contracts\AuthorServiceInterface;
-use App\Exceptions\NotFoundException;
+use App\Helpers\ValidatorHelper;
 
 /**
  * Class AuthorController
@@ -45,12 +44,7 @@ class AuthorController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        try {
-            $author = $this->service->get($id);
-            return response()->json($author);
-        } catch (NotFoundException $e) {
-            return response()->json(['error' => 'Autor não encontrado'], 404);
-        }
+        return response()->json($this->service->get($id));
     }
 
     /**
@@ -61,18 +55,13 @@ class AuthorController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        $validated = ValidatorHelper::validate($request->all(), [
             'name' => 'required|string|max:40',
             'book_ids' => 'sometimes|array',
             'book_ids.*' => 'integer|exists:books,id',
-        ]);
+        ])->validated();
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $author = $this->service->create($validator->validated());
-
+        $author = $this->service->create($validated);
         return response()->json($author, 201);
     }
 
@@ -85,20 +74,12 @@ class AuthorController extends Controller
      */
     public function update(int $id, Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        $validated = ValidatorHelper::validate($request->all(), [
             'name' => 'required|string|max:40',
-        ]);
+        ])->validated();
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        try {
-            $author = $this->service->update($id, $validator->validated());
-            return response()->json($author);
-        } catch (NotFoundException $e) {
-            return response()->json(['error' => 'Autor não encontrado'], 404);
-        }
+        $author = $this->service->update($id, $validated);
+        return response()->json($author);
     }
 
     /**
@@ -109,11 +90,7 @@ class AuthorController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
-        try {
-            $this->service->delete($id);
-            return response()->json(null, 204);
-        } catch (NotFoundException $e) {
-            return response()->json(['error' => 'Autor não encontrado'], 404);
-        }
+        $this->service->delete($id);
+        return response()->json(null, 204);
     }
 }

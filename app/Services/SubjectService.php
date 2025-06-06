@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Subject;
 use App\Repositories\Contracts\SubjectRepositoryInterface;
 use App\Services\Contracts\SubjectServiceInterface;
-use App\Models\Subject;
+use App\Exceptions\NotFoundException;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * Service responsável pelas regras de negócio da entidade Subject.
@@ -34,10 +36,16 @@ class SubjectService implements SubjectServiceInterface
      *
      * @param int $id
      * @return Subject
+     *
+     * @throws NotFoundException
      */
     public function get(int $id): Subject
     {
-        return $this->repo->find($id);
+        try {
+            return $this->repo->find($id);
+        } catch (ModelNotFoundException $e) {
+            throw new NotFoundException('Assunto não encontrado.');
+        }
     }
 
     /**
@@ -57,10 +65,16 @@ class SubjectService implements SubjectServiceInterface
      * @param int $id
      * @param array $data
      * @return Subject
+     *
+     * @throws NotFoundException
      */
     public function update(int $id, array $data): Subject
     {
-        return $this->repo->update($id, $data);
+        try {
+            return $this->repo->update($id, $data);
+        } catch (ModelNotFoundException $e) {
+            throw new NotFoundException('Assunto não encontrado para atualização.');
+        }
     }
 
     /**
@@ -68,9 +82,15 @@ class SubjectService implements SubjectServiceInterface
      *
      * @param int $id
      * @return bool|null
+     *
+     * @throws NotFoundException
      */
     public function delete(int $id): ?bool
     {
-        return $this->repo->delete($id);
+        try {
+            return $this->repo->delete($id);
+        } catch (ModelNotFoundException $e) {
+            throw new NotFoundException('Assunto não encontrado para exclusão.');
+        }
     }
 }

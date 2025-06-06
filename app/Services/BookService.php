@@ -6,6 +6,8 @@ use App\Models\Book;
 use App\Repositories\Contracts\BookRepositoryInterface;
 use App\Services\Contracts\BookServiceInterface;
 use App\Exceptions\NotFoundException;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * Service responsável pelas regras de negócio da entidade Book.
@@ -30,9 +32,9 @@ class BookService implements BookServiceInterface
     /**
      * Retorna todos os livros cadastrados com suas relações.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection<Book>
      */
-    public function list()
+    public function list(): Collection
     {
         return $this->repo->all();
     }
@@ -45,9 +47,13 @@ class BookService implements BookServiceInterface
      *
      * @throws NotFoundException
      */
-    public function get($id)
+    public function get(int $id): Book
     {
-        return $this->repo->find($id);
+        try {
+            return $this->repo->find($id);
+        } catch (ModelNotFoundException $e) {
+            throw new NotFoundException('Livro não encontrado.');
+        }
     }
 
     /**
@@ -56,7 +62,7 @@ class BookService implements BookServiceInterface
      * @param array $data
      * @return Book
      */
-    public function create(array $data)
+    public function create(array $data): Book
     {
         $authorIds = $data['author_ids'] ?? [];
         $subjectIds = $data['subject_ids'] ?? [];
@@ -80,19 +86,23 @@ class BookService implements BookServiceInterface
      *
      * @throws NotFoundException
      */
-    public function update($id, array $data)
+    public function update(int $id, array $data): Book
     {
-        $authorIds = $data['author_ids'] ?? [];
-        $subjectIds = $data['subject_ids'] ?? [];
+        try {
+            $authorIds = $data['author_ids'] ?? [];
+            $subjectIds = $data['subject_ids'] ?? [];
 
-        unset($data['author_ids'], $data['subject_ids']);
+            unset($data['author_ids'], $data['subject_ids']);
 
-        $book = $this->repo->update($id, $data);
+            $book = $this->repo->update($id, $data);
 
-        $book->authors()->sync($authorIds);
-        $book->subjects()->sync($subjectIds);
+            $book->authors()->sync($authorIds);
+            $book->subjects()->sync($subjectIds);
 
-        return $book->load(['authors', 'subjects']);
+            return $book->load(['authors', 'subjects']);
+        } catch (ModelNotFoundException $e) {
+            throw new NotFoundException('Livro não encontrado para atualização.');
+        }
     }
 
     /**
@@ -103,8 +113,12 @@ class BookService implements BookServiceInterface
      *
      * @throws NotFoundException
      */
-    public function delete($id)
+    public function delete(int $id): ?bool
     {
-        return $this->repo->delete($id);
+        try {
+            return $this->repo->delete($id);
+        } catch (ModelNotFoundException $e) {
+            throw new NotFoundException('Livro não encontrado para exclusão.');
+        }
     }
 }

@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use App\Services\Contracts\BookServiceInterface;
 use App\Http\Requests\BookValidator;
-use Illuminate\Http\JsonResponse;
-use App\Exceptions\NotFoundException;
 
 /**
  * Controller responsável pelas operações da entidade Book.
@@ -44,13 +43,9 @@ class BookController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-    public function show($id): JsonResponse
+    public function show(int $id): JsonResponse
     {
-        try {
-            return response()->json($this->service->get($id));
-        } catch (NotFoundException $e) {
-            return response()->json(['error' => 'Livro não encontrado.'], 404);
-        }
+        return response()->json($this->service->get($id));
     }
 
     /**
@@ -61,14 +56,8 @@ class BookController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validator = BookValidator::validate($request->all());
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $book = $this->service->create($request->all());
-
+        $validated = BookValidator::validate($request->all())->validated();
+        $book = $this->service->create($validated);
         return response()->json($book, 201);
     }
 
@@ -79,20 +68,11 @@ class BookController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function update($id, Request $request): JsonResponse
+    public function update(int $id, Request $request): JsonResponse
     {
-        $validator = BookValidator::validate($request->all());
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        try {
-            $book = $this->service->update($id, $request->all());
-            return response()->json($book);
-        } catch (NotFoundException $e) {
-            return response()->json(['error' => 'Livro não encontrado.'], 404);
-        }
+        $validated = BookValidator::validate($request->all())->validated();
+        $book = $this->service->update($id, $validated);
+        return response()->json($book);
     }
 
     /**
@@ -101,13 +81,9 @@ class BookController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-    public function destroy($id): JsonResponse
+    public function destroy(int $id): JsonResponse
     {
-        try {
-            $this->service->delete($id);
-            return response()->json(null, 204);
-        } catch (NotFoundException $e) {
-            return response()->json(['error' => 'Livro não encontrado.'], 404);
-        }
+        $this->service->delete($id);
+        return response()->json(null, 204);
     }
 }
