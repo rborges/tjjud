@@ -1,7 +1,7 @@
 <?php
 
 use App\Domains\Book\Controllers\BookController;
-use App\Http\Controllers\AuthorController;
+use App\Domains\Author\Controllers\AuthorController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\ReportController;
 

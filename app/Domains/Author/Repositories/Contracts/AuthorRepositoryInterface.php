@@ -1,26 +1,26 @@
 <?php
 
-namespace App\Services\Contracts;
+namespace App\Domains\Author\Repositories\Contracts;
 
-use Illuminate\Database\Eloquent\Collection;
 use App\Models\Author;
+use Illuminate\Database\Eloquent\Collection;
 
-interface AuthorServiceInterface
+interface AuthorRepositoryInterface
 {
     /**
-     * Retorna a lista de todos os autores.
+     * Retorna todos os autores com seus livros relacionados.
      *
      * @return Collection<Author>
      */
-    public function list(): Collection;
+    public function all(): Collection;
 
     /**
-     * Retorna os dados de um autor específico.
+     * Retorna um autor específico pelo ID com seus livros.
      *
      * @param int $id
      * @return Author
      */
-    public function get(int $id): Author;
+    public function find(int $id): Author;
 
     /**
      * Cria um novo autor.
@@ -31,7 +31,7 @@ interface AuthorServiceInterface
     public function create(array $data): Author;
 
     /**
-     * Atualiza os dados de um autor existente.
+     * Atualiza um autor existente.
      *
      * @param int $id
      * @param array $data

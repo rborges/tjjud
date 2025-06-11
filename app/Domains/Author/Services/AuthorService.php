@@ -1,26 +1,25 @@
 <?php
 
-namespace App\Services;
+namespace App\Domains\Author\Services;
 
-use App\Repositories\Contracts\AuthorRepositoryInterface;
-use App\Services\Contracts\AuthorServiceInterface;
+use App\Domains\Author\DTO\CreateAuthorDTO;
+use App\Domains\Author\DTO\UpdateAuthorDTO;
+use App\Domains\Author\Repositories\Contracts\AuthorRepositoryInterface;
+use App\Domains\Author\Services\Contracts\AuthorServiceInterface;
 use App\Exceptions\NotFoundException;
+use App\Models\Author;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Models\Author;
 
 /**
- * Serviço responsável pelas regras de negócio relacionadas à entidade Author.
+ * Service responsável pelas regras de negócio da entidade Author.
  */
 class AuthorService implements AuthorServiceInterface
 {
-    /**
-     * @var AuthorRepositoryInterface
-     */
     protected AuthorRepositoryInterface $repo;
 
     /**
-     * Injeta o repositório de autores.
+     * Injeta a dependência do repositório de autores.
      *
      * @param AuthorRepositoryInterface $repo
      */
@@ -30,7 +29,7 @@ class AuthorService implements AuthorServiceInterface
     }
 
     /**
-     * Retorna a lista de todos os autores.
+     * Retorna todos os autores cadastrados.
      *
      * @return Collection<Author>
      */
@@ -57,38 +56,36 @@ class AuthorService implements AuthorServiceInterface
     }
 
     /**
-     * Cria um novo autor e relaciona livros, se fornecidos.
+     * Cria um novo autor com livros vinculados.
      *
-     * @param array $data
+     * @param CreateAuthorDTO $dto
      * @return Author
      */
-    public function create(array $data): Author
+    public function create(CreateAuthorDTO $dto): Author
     {
-        $author = $this->repo->create([
-            'name' => $data['name'],
-        ]);
+        $author = $this->repo->create($dto->toArray());
 
-        if (!empty($data['book_ids'])) {
-            $author->books()->sync($data['book_ids']);
+        if (!empty($dto->book_ids)) {
+            $author->books()->sync($dto->book_ids);
         }
 
         return $author->load('books');
     }
 
     /**
-     * Atualiza os dados de um autor existente.
+     * Atualiza os dados de um autor.
      *
      * @param int $id
-     * @param array $data
+     * @param UpdateAuthorDTO $dto
      * @return Author
      *
      * @throws NotFoundException
      */
-    public function update(int $id, array $data): Author
+    public function update(int $id, UpdateAuthorDTO $dto): Author
     {
         try {
             $author = $this->repo->find($id);
-            $author->update($data);
+            $author->update($dto->toArray());
 
             return $author;
         } catch (ModelNotFoundException $e) {
