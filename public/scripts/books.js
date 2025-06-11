@@ -1,3 +1,4 @@
+
 let converterPreco;
 
 function aplicarMascaraPreco(inputElemento) {
@@ -17,26 +18,31 @@ function aplicarMascaraPreco(inputElemento) {
     };
 }
 
+function extractData(response) {
+    return response.data?.data || [];
+}
+
 function carregarLivros() {
     axios.get('http://localhost:8000/books')
         .then(response => {
+            const livros = extractData(response);
             const tabela = document.getElementById('tabela-livros');
             tabela.innerHTML = '';
-            response.data.forEach(livro => {
+            livros.forEach(livro => {
                 tabela.innerHTML += `
-              <tr>
-                <td>${livro.id}</td>
-                <td>${livro.title}</td>
-                <td>${livro.publisher}</td>
-                <td>${livro.edition}</td>
-                <td>${livro.published_year}</td>
-                <td>${parseFloat(livro.price).toFixed(2).replace('.', ',')}</td>
-                <td>
-                  <button class="btn btn-sm btn-primary" onclick="editarLivro(${livro.id})">Editar</button>
-                  <button class="btn btn-sm btn-danger" onclick="excluirLivro(${livro.id})">Excluir</button>
-                </td>
-              </tr>
-            `;
+                  <tr>
+                    <td>${livro.id}</td>
+                    <td>${livro.title}</td>
+                    <td>${livro.publisher}</td>
+                    <td>${livro.edition}</td>
+                    <td>${livro.published_year}</td>
+                    <td>${parseFloat(livro.price).toFixed(2).replace('.', ',')}</td>
+                    <td>
+                      <button class="btn btn-sm btn-primary" onclick="editarLivro(${livro.id})">Editar</button>
+                      <button class="btn btn-sm btn-danger" onclick="excluirLivro(${livro.id})">Excluir</button>
+                    </td>
+                  </tr>
+                `;
             });
         })
         .catch(error => console.error('Erro ao carregar livros:', error));
@@ -45,9 +51,10 @@ function carregarLivros() {
 function carregarAutores() {
     return axios.get('http://localhost:8000/authors')
         .then(response => {
+            const autores = extractData(response);
             const select = document.getElementById('autores');
             select.innerHTML = '';
-            response.data.forEach(autor => {
+            autores.forEach(autor => {
                 const option = document.createElement('option');
                 option.value = autor.id;
                 option.textContent = autor.name;
@@ -59,9 +66,10 @@ function carregarAutores() {
 function carregarAssuntos() {
     return axios.get('http://localhost:8000/subjects')
         .then(response => {
+            const assuntos = extractData(response);
             const select = document.getElementById('assuntos');
             select.innerHTML = '';
-            response.data.forEach(assunto => {
+            assuntos.forEach(assunto => {
                 const option = document.createElement('option');
                 option.value = assunto.id;
                 option.textContent = assunto.description;
@@ -73,14 +81,13 @@ function carregarAssuntos() {
 function editarLivro(id) {
     axios.get(`http://localhost:8000/books/${id}`)
         .then(response => {
-            const livro = response.data;
+            const livro = response.data?.data;
             document.getElementById('livro-id').value = livro.id;
             document.getElementById('titulo').value = livro.title;
             document.getElementById('editora').value = livro.publisher;
             document.getElementById('edicao').value = livro.edition;
             document.getElementById('ano').value = livro.published_year;
 
-            // Espera os selects serem carregados antes de marcar selecionados
             Promise.all([carregarAutores(), carregarAssuntos()]).then(() => {
                 const autoresSelect = document.getElementById('autores');
                 const assuntosSelect = document.getElementById('assuntos');
@@ -94,7 +101,6 @@ function editarLivro(id) {
                 });
             });
 
-            // Formata preço com máscara
             document.getElementById('preco').value = 'R$ ' +
                 parseFloat(livro.price).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 

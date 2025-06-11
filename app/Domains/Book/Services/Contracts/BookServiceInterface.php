@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Services\Contracts;
+namespace App\Domains\Book\Services\Contracts;
 
+use App\Domains\Book\DTO\CreateBookDTO;
+use App\Domains\Book\DTO\UpdateBookDTO;
 use App\Models\Book;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -25,19 +27,19 @@ interface BookServiceInterface
     /**
      * Cria um novo livro.
      *
-     * @param array $data
+     * @param CreateBookDTO $dto DTO com os dados do livro a ser criado
      * @return Book
      */
-    public function create(array $data): Book;
+    public function create(CreateBookDTO $dto): Book;
 
     /**
-     * Atualiza os dados de um livro.
+     * Atualiza um livro com dados encapsulados em DTO.
      *
      * @param int $id
-     * @param array $data
+     * @param UpdateBookDTO $dto
      * @return Book
      */
-    public function update(int $id, array $data): Book;
+    public function update(int $id, UpdateBookDTO $dto): Book;
 
     /**
      * Exclui um livro.

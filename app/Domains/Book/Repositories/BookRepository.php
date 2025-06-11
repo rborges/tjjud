@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Domains\Book\Repositories;
 
 use App\Models\Book;
-use App\Repositories\Contracts\BookRepositoryInterface;
+use App\Domains\Book\Repositories\Contracts\BookRepositoryInterface;
 use App\Exceptions\NotFoundException;
 
 /**

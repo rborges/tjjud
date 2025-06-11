@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Services;
+namespace App\Domains\Book\Services;
 
+use App\Domains\Book\DTO\CreateBookDTO;
+use App\Domains\Book\DTO\UpdateBookDTO;
+use App\Domains\Book\Repositories\Contracts\BookRepositoryInterface;
+use App\Domains\Book\Services\Contracts\BookServiceInterface;
 use App\Models\Book;
-use App\Repositories\Contracts\BookRepositoryInterface;
-use App\Services\Contracts\BookServiceInterface;
 use App\Exceptions\NotFoundException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -59,20 +61,21 @@ class BookService implements BookServiceInterface
     /**
      * Cria um novo livro com autores e assuntos vinculados.
      *
-     * @param array $data
+     * @param CreateBookDTO $dto DTO com os dados do livro
      * @return Book
      */
-    public function create(array $data): Book
+    public function create(CreateBookDTO $dto): Book
     {
-        $authorIds = $data['author_ids'] ?? [];
-        $subjectIds = $data['subject_ids'] ?? [];
+        $book = $this->repo->create([
+            'title' => $dto->title,
+            'publisher' => $dto->publisher,
+            'edition' => $dto->edition,
+            'published_year' => $dto->published_year,
+            'price' => $dto->price,
+        ]);
 
-        unset($data['author_ids'], $data['subject_ids']);
-
-        $book = $this->repo->create($data);
-
-        $book->authors()->sync($authorIds);
-        $book->subjects()->sync($subjectIds);
+        $book->authors()->sync($dto->author_ids);
+        $book->subjects()->sync($dto->subject_ids);
 
         return $book->load(['authors', 'subjects']);
     }
@@ -81,23 +84,18 @@ class BookService implements BookServiceInterface
      * Atualiza os dados de um livro e sincroniza seus relacionamentos.
      *
      * @param int $id
-     * @param array $data
+     * @param UpdateBookDTO $dto
      * @return Book
      *
      * @throws NotFoundException
      */
-    public function update(int $id, array $data): Book
+    public function update(int $id, UpdateBookDTO $dto): Book
     {
         try {
-            $authorIds = $data['author_ids'] ?? [];
-            $subjectIds = $data['subject_ids'] ?? [];
+            $book = $this->repo->update($id, $dto->toArray());
 
-            unset($data['author_ids'], $data['subject_ids']);
-
-            $book = $this->repo->update($id, $data);
-
-            $book->authors()->sync($authorIds);
-            $book->subjects()->sync($subjectIds);
+            $book->authors()->sync($dto->author_ids);
+            $book->subjects()->sync($dto->subject_ids);
 
             return $book->load(['authors', 'subjects']);
         } catch (ModelNotFoundException $e) {
