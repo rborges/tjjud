@@ -6,8 +6,8 @@ Este projeto é um sistema completo para gerenciamento de livros, autores e assu
 
 ## 🚀 Tecnologias Utilizadas
 
-* PHP 7.3+
-* [Lumen 5.6](https://lumen.laravel.com/)
+* PHP 8.3+
+* [Lumen (10.0.4) (Laravel Components ^10.0)](https://lumen.laravel.com/)
 * Axios
 * Bootstrap 5 / Bootstrap Icons
 * DomPDF (para geração de PDFs)

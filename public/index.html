@@ -27,62 +27,101 @@
     <div class="main-panel flex-grow-1">
       <div class="content-wrapper">
         <div class="page-header">
-          <h3 class="page-title">Cadastro de Livros</h3>
+          <h3 class="page-title"> Documentação Técnica</h3>
         </div>
         <div id="content">
-          <form id="form-livro" class="mb-4">
-            <input type="hidden" id="livro-id">
-            <div class="row">
-              <div class="col-md-6">
-                <label for="titulo">Título</label>
-                <input type="text" class="form-control" id="titulo" required>
-              </div>
-              <div class="col-md-6">
-                <label for="editora">Editora</label>
-                <input type="text" class="form-control" id="editora" required>
-              </div>
-              <div class="col-md-4">
-                <label for="edicao">Edição</label>
-                <input type="number" class="form-control" id="edicao" required>
-              </div>
-              <div class="col-md-4">
-                <label for="ano">Ano</label>
-                <input type="text" class="form-control" id="ano" maxlength="4" required>
-              </div>
-              <div class="col-md-4">
-                <label for="preco">Preço</label>
-                <input type="text" class="form-control" id="preco" required>
-              </div>
-              <div class="col-md-12">
-                <label for="autores">Autores</label>
-                <select id="autores" class="form-control" multiple required></select>
-              </div>
-              <div class="col-md-12">
-                <label for="assuntos">Assuntos</label>
-                <select id="assuntos" class="form-control" multiple required></select>
-              </div>
-            </div>
-            <div class="mt-3">
-              <button type="submit" class="btn btn-success">Salvar Livro</button>
-              <button type="button" id="cancelar-edicao" class="btn btn-secondary d-none">Cancelar Edição</button>
-            </div>
-          </form>
+          <hr class="my-5" />
+          <div class="container">
+            <h5 class="mt-4">Tecnologias Utilizadas</h5>
+            <ul>
+              <li><strong>Backend:</strong> Lumen 10.0.+ (Micro-framework Laravel)</li>
+              <li><strong>Linguagem:</strong> PHP 8.3.22</li>
+              <li><strong>Frontend:</strong> HTML5, Bootstrap Icons, Axios (JS)</li>
+              <li><strong>Banco de Dados:</strong> MySQL 8 (via Docker)</li>
+              <li><strong>PDF:</strong> domPDF com Barryvdh\DomPDF</li>
+              <li><strong>Testes:</strong> PHPUnit 10</li>
+              <li><strong>Ambiente:</strong> Docker + Docker Compose</li>
+            </ul>
 
-          <button onclick="carregarLivros()" class="btn btn-primary mb-3">Atualizar Lista</button>
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Título</th>
-                <th>Editora</th>
-                <th>Edição</th>
-                <th>Ano</th>
-                <th>Preço (R$)</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="tabela-livros"></tbody>
-          </table>
+            <h5 class="mt-4">Arquitetura e Camadas</h5>
+            <ul>
+              <li><strong>Controllers:</strong> Responsáveis por receber a requisição HTTP e delegar para o Service
+                correspondente.</li>
+              <li><strong>Services:</strong> Contêm a regra de negócio e usam os Repositories para acesso aos dados.
+              </li>
+              <li><strong>DTOs:</strong> Transferem dados entre camada de entrada e service, garantindo coesão e
+                imutabilidade dos dados.</li>
+              <li><strong>Repositories:</strong> Isolam a persistência de dados e encapsulam Eloquent.</li>
+              <li><strong>Requests:</strong> Validação desacoplada da lógica de controller, usando `Validator::make()`.
+              </li>
+              <li><strong>Resources:</strong> Normalizam e organizam o retorno JSON.</li>
+            </ul>
+
+            <h5 class="mt-4">Estrutura de Diretórios (Simplificada)</h5>
+            <pre><code>app/
+├── Domains/
+│   ├── Book/
+│   │   ├── Controllers/
+│   │   ├── DTO/
+│   │   ├── Requests/
+│   │   ├── Services/
+│   │   └── Repositories/
+│   ├── Author/
+│   └── Subject/
+├── Http/
+│   ├── Controllers/
+│   └── Resources/
+└── Models/
+tests/
+└── Unit/
+    └── Services/
+</code></pre>
+
+            <h5 class="mt-4">Subindo o Projeto com Docker</h5>
+            <pre><code># Subir containers
+docker-compose up -d
+
+# Ver containers ativos
+docker ps
+
+# Acessar o container do app
+docker exec -it &lt;CONTAINER_ID ou NOME&gt; bash
+
+# Exemplo:
+docker exec -it lumen_app bash
+</code></pre>
+
+            <h5 class="mt-4">Rodando os Testes</h5>
+            <pre><code># Dentro do container
+./vendor/bin/phpunit --filter SubjectServiceTest
+./vendor/bin/phpunit --filter BookServiceTest
+./vendor/bin/phpunit --filter AuthorServiceTest
+</code></pre>
+
+            <h5 class="mt-4">Relatórios PDF</h5>
+            <ul>
+              <li>A geração de relatórios PDF é feita via <code>Barryvdh\DomPDF</code>.</li>
+              <li>Rota: <code>GET /relatorio/pdf</code> → abre PDF gerado com base na view
+                <code>resources/views/report.blade.php</code>.
+              </li>
+              <li>PDF salvo em: <code>storage/app/relatorios/relatorio-livros.pdf</code></li>
+            </ul>
+
+            <h5 class="mt-4">Validações</h5>
+            <ul>
+              <li>Realizadas por classes especializadas como <code>CreateBookRequest</code> e
+                <code>UpdateBookRequest</code>.
+              </li>
+              <li>Validação acontece antes do DTO ser criado e passado ao service.</li>
+            </ul>
+
+            <h5 class="mt-4">Observações</h5>
+            <ul>
+              <li>Seguindo princípios de Clean Architecture: cada camada tem uma responsabilidade clara.</li>
+              <li>Pronto para testes unitários isolados com mocks dos repositórios.</li>
+            </ul>
+          </div>
+
         </div>
       </div>
     </div>
@@ -91,169 +130,7 @@
   <script src="assets/vendors/js/vendor.bundle.base.js"></script>
   <script src="assets/js/off-canvas.js"></script>
   <script src="assets/js/hoverable-collapse.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script>
-    let converterPreco;
 
-    function aplicarMascaraPreco(inputElemento) {
-      inputElemento.addEventListener('input', () => {
-        let valor = inputElemento.value.replace(/\D/g, '');
-        if (!valor.length) {
-          inputElemento.value = '';
-          return;
-        }
-
-        valor = (parseInt(valor, 10) / 100).toFixed(2);
-        inputElemento.value = 'R$ ' + valor.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-      });
-
-      return function () {
-        return parseFloat(inputElemento.value.replace(/\s|[R$\.]/g, '').replace(',', '.')) || 0;
-      };
-    }
-
-    function carregarLivros() {
-      axios.get('http://localhost:8000/books')
-        .then(response => {
-          const tabela = document.getElementById('tabela-livros');
-          tabela.innerHTML = '';
-          response.data.forEach(livro => {
-            tabela.innerHTML += `
-              <tr>
-                <td>${livro.id}</td>
-                <td>${livro.title}</td>
-                <td>${livro.publisher}</td>
-                <td>${livro.edition}</td>
-                <td>${livro.published_year}</td>
-                <td>${parseFloat(livro.price).toFixed(2).replace('.', ',')}</td>
-                <td>
-                  <button class="btn btn-sm btn-primary" onclick="editarLivro(${livro.id})">Editar</button>
-                  <button class="btn btn-sm btn-danger" onclick="excluirLivro(${livro.id})">Excluir</button>
-                </td>
-              </tr>
-            `;
-          });
-        })
-        .catch(error => console.error('Erro ao carregar livros:', error));
-    }
-
-    function carregarAutores() {
-      return axios.get('http://localhost:8000/authors')
-        .then(response => {
-          const select = document.getElementById('autores');
-          select.innerHTML = '';
-          response.data.forEach(autor => {
-            const option = document.createElement('option');
-            option.value = autor.id;
-            option.textContent = autor.name;
-            select.appendChild(option);
-          });
-        });
-    }
-
-    function carregarAssuntos() {
-      return axios.get('http://localhost:8000/subjects')
-        .then(response => {
-          const select = document.getElementById('assuntos');
-          select.innerHTML = '';
-          response.data.forEach(assunto => {
-            const option = document.createElement('option');
-            option.value = assunto.id;
-            option.textContent = assunto.description;
-            select.appendChild(option);
-          });
-        });
-    }
-
-    function editarLivro(id) {
-      axios.get(`http://localhost:8000/books/${id}`)
-        .then(response => {
-          const livro = response.data;
-          document.getElementById('livro-id').value = livro.id;
-          document.getElementById('titulo').value = livro.title;
-          document.getElementById('editora').value = livro.publisher;
-          document.getElementById('edicao').value = livro.edition;
-          document.getElementById('ano').value = livro.published_year;
-
-          // Espera os selects serem carregados antes de marcar selecionados
-          Promise.all([carregarAutores(), carregarAssuntos()]).then(() => {
-            const autoresSelect = document.getElementById('autores');
-            const assuntosSelect = document.getElementById('assuntos');
-
-            Array.from(autoresSelect.options).forEach(opt => {
-              opt.selected = livro.authors.some(a => a.id == opt.value);
-            });
-
-            Array.from(assuntosSelect.options).forEach(opt => {
-              opt.selected = livro.subjects.some(s => s.id == opt.value);
-            });
-          });
-
-          // Formata preço com máscara
-          document.getElementById('preco').value = 'R$ ' +
-            parseFloat(livro.price).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-          document.getElementById('cancelar-edicao').classList.remove('d-none');
-        })
-        .catch(error => {
-          console.error('Erro ao carregar livro para edição:', error);
-          alert('Erro ao carregar dados do livro.');
-        });
-    }
-
-    function excluirLivro(id) {
-      if (confirm('Deseja realmente excluir este livro?')) {
-        axios.delete(`http://localhost:8000/books/${id}`)
-          .then(() => carregarLivros());
-      }
-    }
-
-    document.getElementById('form-livro').addEventListener('submit', function (e) {
-      e.preventDefault();
-
-      const id = document.getElementById('livro-id').value;
-      const selectedAuthors = Array.from(document.getElementById('autores').selectedOptions).map(opt => parseInt(opt.value));
-      const selectedSubjects = Array.from(document.getElementById('assuntos').selectedOptions).map(opt => parseInt(opt.value));
-
-      const livroPayload = {
-        title: document.getElementById('titulo').value,
-        publisher: document.getElementById('editora').value,
-        edition: parseInt(document.getElementById('edicao').value),
-        published_year: document.getElementById('ano').value,
-        price: converterPreco(),
-        author_ids: selectedAuthors,
-        subject_ids: selectedSubjects
-      };
-
-      const axiosRequest = id
-        ? axios.put(`http://localhost:8000/books/${id}`, livroPayload)
-        : axios.post('http://localhost:8000/books', livroPayload);
-
-      axiosRequest.then(() => {
-        alert('Livro salvo com sucesso!');
-        carregarLivros();
-        document.getElementById('form-livro').reset();
-        document.getElementById('livro-id').value = '';
-        document.getElementById('cancelar-edicao').classList.add('d-none');
-      }).catch(error => {
-        console.error('Erro ao salvar livro:', error);
-        alert('Erro ao salvar o livro.');
-      });
-    });
-
-    document.getElementById('cancelar-edicao').addEventListener('click', () => {
-      document.getElementById('form-livro').reset();
-      document.getElementById('livro-id').value = '';
-      document.getElementById('cancelar-edicao').classList.add('d-none');
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      carregarLivros();
-      carregarAutores();
-      carregarAssuntos();
-      converterPreco = aplicarMascaraPreco(document.getElementById('preco'));
-    });
-  </script>
 </body>
 
 </html>
