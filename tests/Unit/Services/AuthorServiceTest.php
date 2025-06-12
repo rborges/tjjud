@@ -2,9 +2,13 @@
 
 namespace Tests\Unit\Services;
 
-use App\Repositories\Contracts\AuthorRepositoryInterface;
-use App\Services\AuthorService;
+use App\Domains\Author\DTO\CreateAuthorDTO;
+use App\Domains\Author\DTO\UpdateAuthorDTO;
+use App\Domains\Author\Repositories\Contracts\AuthorRepositoryInterface;
+use App\Domains\Author\Services\AuthorService;
+use App\Models\Author;
 use PHPUnit\Framework\TestCase;
+use Illuminate\Database\Eloquent\Collection;
 
 class AuthorServiceTest extends TestCase
 {
@@ -22,43 +26,49 @@ class AuthorServiceTest extends TestCase
 
     public function testListAuthors()
     {
-        $expected = [
-            ['id' => 1, 'name' => 'Autor A'],
-            ['id' => 2, 'name' => 'Autor B'],
-        ];
+        $authors = new Collection([
+            new Author(['id' => 1, 'name' => 'Autor A']),
+            new Author(['id' => 2, 'name' => 'Autor B']),
+        ]);
 
-        $this->authorRepository->method('all')->willReturn($expected);
+        $this->authorRepository->method('all')->willReturn($authors);
 
-        $this->assertEquals($expected, $this->authorService->list());
+        $this->assertEquals($authors, $this->authorService->list());
     }
 
     public function testGetAuthor()
     {
-        $expected = ['id' => 1, 'name' => 'Autor A'];
+        $author = new Author(['id' => 1, 'name' => 'Autor A']);
 
-        $this->authorRepository->method('find')->with(1)->willReturn($expected);
+        $this->authorRepository->method('find')->with(1)->willReturn($author);
 
-        $this->assertEquals($expected, $this->authorService->get(1));
+        $this->assertEquals($author, $this->authorService->get(1));
     }
 
     public function testCreateAuthor()
     {
-        $data = ['name' => 'Novo Autor'];
-        $expected = ['id' => 1, 'name' => 'Novo Autor'];
+        $dto = CreateAuthorDTO::fromArray(['name' => 'Novo Autor', 'book_ids' => []]);
 
-        $this->authorRepository->method('create')->with($data)->willReturn($expected);
+        $author = $this->createPartialMock(Author::class, ['books', 'load']);
+        $author->method('books')->willReturn(new class {
+            public function sync() {}
+        });
+        $author->method('load')->willReturnSelf();
 
-        $this->assertEquals($expected, $this->authorService->create($data));
+        $this->authorRepository->method('create')->with($dto->toArray())->willReturn($author);
+
+        $this->assertEquals($author, $this->authorService->create($dto));
     }
 
     public function testUpdateAuthor()
     {
-        $data = ['name' => 'Nome Atualizado'];
-        $expected = ['id' => 1, 'name' => 'Nome Atualizado'];
+        $dto = UpdateAuthorDTO::fromArray(['name' => 'Nome Atualizado']);
 
-        $this->authorRepository->method('update')->with(1, $data)->willReturn($expected);
+        $author = new Author(['id' => 1, 'name' => 'Nome Atualizado']);
 
-        $this->assertEquals($expected, $this->authorService->update(1, $data));
+        $this->authorRepository->method('find')->with(1)->willReturn($author);
+
+        $this->assertEquals($author, $this->authorService->update(1, $dto));
     }
 
     public function testDeleteAuthor()
@@ -70,6 +80,6 @@ class AuthorServiceTest extends TestCase
 
         $this->authorService->delete(1);
 
-        $this->assertTrue(true); // apenas confirmação de execução sem exceção
+        $this->assertTrue(true); // Apenas para garantir que não houve exceção
     }
 }

@@ -3,9 +3,10 @@ let autorEditandoId = null;
 function carregarAutores() {
     axios.get('http://localhost:8000/authors')
         .then(response => {
+            const autores = response.data.data;
             const tabela = document.getElementById('tabela-autores');
             tabela.innerHTML = '';
-            response.data.forEach(autor => {
+            autores.forEach(autor => {
                 tabela.innerHTML += `
               <tr>
                 <td>${autor.id}</td>
@@ -15,7 +16,7 @@ function carregarAutores() {
                     <i class="bi bi-pencil"></i> Editar
                   </button>
                   <button class="btn btn-sm btn-danger btn-icon" onclick="excluirAutor(${autor.id})">
-                    <i class="bi bi-trash"></i> Exluir
+                    <i class="bi bi-trash"></i> Excluir
                   </button>
                 </td>
               </tr>
@@ -24,6 +25,7 @@ function carregarAutores() {
         })
         .catch(error => {
             console.error('Erro ao carregar autores:', error);
+            alert('Erro ao buscar autores.');
         });
 }
 
@@ -36,13 +38,13 @@ function editarAutor(id, nome) {
 function excluirAutor(id) {
     if (confirm('Deseja realmente excluir este autor?')) {
         axios.delete(`http://localhost:8000/authors/${id}`)
-            .then(() => {
-                alert('Autor excluído com sucesso!');
+            .then(response => {
+                alert(response.data.message || 'Autor excluído com sucesso!');
                 carregarAutores();
             })
             .catch(error => {
                 console.error('Erro ao excluir autor:', error);
-                alert('Erro ao excluir o autor.');
+                alert(error.response?.data?.message || 'Erro ao excluir o autor.');
             });
     }
 }
@@ -50,9 +52,14 @@ function excluirAutor(id) {
 document.getElementById('form-autor').addEventListener('submit', function (e) {
     e.preventDefault();
 
-    const novoAutor = {
-        name: document.getElementById('nome').value
-    };
+    const nome = document.getElementById('nome').value.trim();
+
+    if (!nome) {
+        alert('O nome do autor é obrigatório.');
+        return;
+    }
+
+    const novoAutor = { name: nome };
 
     const url = autorEditandoId
         ? `http://localhost:8000/authors/${autorEditandoId}`
@@ -61,8 +68,8 @@ document.getElementById('form-autor').addEventListener('submit', function (e) {
     const metodo = autorEditandoId ? 'put' : 'post';
 
     axios[metodo](url, novoAutor)
-        .then(() => {
-            alert(autorEditandoId ? 'Autor atualizado com sucesso!' : 'Autor cadastrado com sucesso!');
+        .then(response => {
+            alert(response.data.message || 'Autor salvo com sucesso!');
             carregarAutores();
             document.getElementById('form-autor').reset();
             autorEditandoId = null;
@@ -70,7 +77,20 @@ document.getElementById('form-autor').addEventListener('submit', function (e) {
         })
         .catch(error => {
             console.error('Erro ao salvar autor:', error);
-            alert('Erro ao salvar o autor.');
+
+            const response = error.response?.data;
+            const msgBase = response?.message || 'Erro ao salvar o autor.';
+
+            if (response?.errors) {
+                const mensagens = Object.values(response.errors)
+                    .flat()
+                    .map(msg => `- ${msg}`)
+                    .join('\n');
+
+                alert(`${msgBase}\n${mensagens}`);
+            } else {
+                alert(msgBase);
+            }
         });
 });
 
