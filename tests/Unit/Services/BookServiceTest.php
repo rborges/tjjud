@@ -2,12 +2,17 @@
 
 namespace Tests\Unit\Services;
 
-use App\Repositories\Contracts\BookRepositoryInterface;
-use App\Services\BookService;
+use App\Domains\Book\DTO\CreateBookDTO;
+use App\Domains\Book\DTO\UpdateBookDTO;
+use App\Domains\Book\Services\BookService;
+use App\Domains\Book\Repositories\Contracts\BookRepositoryInterface;
+use App\Models\Book;
+use Illuminate\Database\Eloquent\Collection;
 use PHPUnit\Framework\TestCase;
 
 class BookServiceTest extends TestCase
 {
+    /** @var BookRepositoryInterface&\PHPUnit\Framework\MockObject\MockObject */
     protected $bookRepository;
     protected $bookService;
 
@@ -15,68 +20,89 @@ class BookServiceTest extends TestCase
     {
         parent::setUp();
 
-        // Mock do repository
         $this->bookRepository = $this->createMock(BookRepositoryInterface::class);
-
-        /** @var BookRepositoryInterface&\PHPUnit\Framework\MockObject\MockObject */
         $this->bookService = new BookService($this->bookRepository);
     }
 
     public function testListBooks()
     {
-        $expected = [
-            ['id' => 1, 'title' => 'Livro A'],
-            ['id' => 2, 'title' => 'Livro B'],
-        ];
+        $books = new Collection([
+            new Book(['id' => 1, 'title' => 'Livro A']),
+            new Book(['id' => 2, 'title' => 'Livro B']),
+        ]);
 
-        $this->bookRepository->method('all')->willReturn($expected);
+        $this->bookRepository->method('all')->willReturn($books);
 
-        $result = $this->bookService->list();
-
-        $this->assertEquals($expected, $result);
+        $this->assertEquals($books, $this->bookService->list());
     }
 
     public function testGetBook()
     {
-        $expected = ['id' => 1, 'title' => 'Livro A'];
+        $book = new Book(['id' => 1, 'title' => 'Livro A']);
 
-        $this->bookRepository->method('find')->with(1)->willReturn($expected);
+        $this->bookRepository->method('find')->with(1)->willReturn($book);
 
-        $result = $this->bookService->get(1);
-
-        $this->assertEquals($expected, $result);
+        $this->assertEquals($book, $this->bookService->get(1));
     }
 
     public function testCreateBook()
     {
-        $data = ['title' => 'Novo Livro'];
-        $expected = ['id' => 1, 'title' => 'Novo Livro'];
+        $dto = CreateBookDTO::fromArray([
+            'title' => 'Novo Livro',
+            'publisher' => 'Editora X',
+            'edition' => 1,
+            'published_year' => '2023',
+            'price' => 29.99,
+            'author_ids' => [1],
+            'subject_ids' => [2]
+        ]);
 
-        $this->bookRepository->method('create')->with($data)->willReturn($expected);
+        $book = $this->createPartialMock(Book::class, ['authors', 'subjects', 'load']);
+        $book->method('authors')->willReturn(new class {
+            public function sync() {}
+        });
+        $book->method('subjects')->willReturn(new class {
+            public function sync() {}
+        });
+        $book->method('load')->willReturnSelf();
 
-        $result = $this->bookService->create($data);
+        $this->bookRepository->method('create')->willReturn($book);
 
-        $this->assertEquals($expected, $result);
+        $this->assertEquals($book, $this->bookService->create($dto));
     }
 
     public function testUpdateBook()
     {
-        $data = ['title' => 'Atualizado'];
-        $expected = ['id' => 1, 'title' => 'Atualizado'];
+        $dto = UpdateBookDTO::fromArray([
+            'title' => 'Atualizado',
+            'publisher' => 'Editora X',
+            'edition' => 1,
+            'published_year' => '2023',
+            'price' => 29.99,
+            'author_ids' => [1],
+            'subject_ids' => [2]
+        ]);
 
-        $this->bookRepository->method('update')->with(1, $data)->willReturn($expected);
+        $book = $this->createPartialMock(Book::class, ['authors', 'subjects', 'load']);
+        $book->method('authors')->willReturn(new class {
+            public function sync() {}
+        });
+        $book->method('subjects')->willReturn(new class {
+            public function sync() {}
+        });
+        $book->method('load')->willReturnSelf();
 
-        $result = $this->bookService->update(1, $data);
+        $this->bookRepository->method('update')->with(1, $dto->toArray())->willReturn($book);
 
-        $this->assertEquals($expected, $result);
+        $this->assertEquals($book, $this->bookService->update(1, $dto));
     }
 
     public function testDeleteBook()
     {
-        $this->bookRepository->expects($this->once())->method('delete')->with(1);
+        $this->bookRepository->expects($this->once())->method('delete')->with(1)->willReturn(true);
 
-        $this->bookService->delete(1);
+        $result = $this->bookService->delete(1);
 
-        $this->assertTrue(true); // Apenas confirma que nenhum erro foi lançado
+        $this->assertTrue($result);
     }
 }

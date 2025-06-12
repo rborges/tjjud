@@ -30379,4 +30379,9 @@ dl li {
   background-color: darkgrey;
   outline: 1px solid slategrey;
 }
+
+#autores, #assuntos {
+  height: 100px;
+  padding: 5px;
+}
 /*# sourceMappingURL=maps/style.css.map */

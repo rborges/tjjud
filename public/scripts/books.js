@@ -148,8 +148,22 @@ document.getElementById('form-livro').addEventListener('submit', function (e) {
         document.getElementById('cancelar-edicao').classList.add('d-none');
     }).catch(error => {
         console.error('Erro ao salvar livro:', error);
-        alert('Erro ao salvar o livro.');
+
+        const response = error.response?.data;
+        const msgBase = response?.message || 'Erro ao salvar o livro.';
+
+        if (response?.errors) {
+            const mensagens = Object.values(response.errors)
+                .flat()
+                .map(msg => `- ${msg}`)
+                .join('\n');
+
+            alert(`${msgBase}\n${mensagens}`);
+        } else {
+            alert(msgBase);
+        }
     });
+
 });
 
 document.getElementById('cancelar-edicao').addEventListener('click', () => {
