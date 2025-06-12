@@ -1,34 +1,31 @@
 <?php
 
-use App\Domains\Book\Controllers\BookController;
-use App\Domains\Author\Controllers\AuthorController;
-use App\Http\Controllers\SubjectController;
-use App\Http\Controllers\ReportController;
-
 $router->group(['prefix' => 'books'], function () use ($router) {
-    $router->get('/', [BookController::class, 'index']);
-    $router->get('/{id}', [BookController::class, 'show']);
-    $router->post('/', [BookController::class, 'store']);
-    $router->put('/{id}', [BookController::class, 'update']);
-    $router->delete('/{id}', [BookController::class, 'destroy']);
+    $router->get('/', 'App\Domains\Book\Controllers\BookController@index');
+    $router->get('/{id}', 'App\Domains\Book\Controllers\BookController@show');
+    $router->post('/', 'App\Domains\Book\Controllers\BookController@store');
+    $router->put('/{id}', 'App\Domains\Book\Controllers\BookController@update');
+    $router->delete('/{id}', 'App\Domains\Book\Controllers\BookController@destroy');
 });
 
 $router->group(['prefix' => 'authors'], function () use ($router) {
-    $router->get('/', [AuthorController::class, 'index']);
-    $router->get('/{id}', [AuthorController::class, 'show']);
-    $router->post('/', [AuthorController::class, 'store']);
-    $router->put('/{id}', [AuthorController::class, 'update']);
-    $router->delete('/{id}', [AuthorController::class, 'destroy']);
+    $router->get('/', 'App\Domains\Author\Controllers\AuthorController@index');
+    $router->get('/{id}', 'App\Domains\Author\Controllers\AuthorController@show');
+    $router->post('/', 'App\Domains\Author\Controllers\AuthorController@store');
+    $router->put('/{id}', 'App\Domains\Author\Controllers\AuthorController@update');
+    $router->delete('/{id}', 'App\Domains\Author\Controllers\AuthorController@destroy');
 });
 
 $router->group(['prefix' => 'subjects'], function () use ($router) {
-    $router->get('/', [SubjectController::class, 'index']);
-    $router->get('/{id}', [SubjectController::class, 'show']);
-    $router->post('/', [SubjectController::class, 'store']);
-    $router->put('/{id}', [SubjectController::class, 'update']);
-    $router->delete('/{id}', [SubjectController::class, 'destroy']);
+    $router->get('/', 'App\Domains\Subject\Controllers\SubjectController@index');
+    $router->get('/{id}', 'App\Domains\Subject\Controllers\SubjectController@show');
+    $router->post('/', 'App\Domains\Subject\Controllers\SubjectController@store');
+    $router->put('/{id}', 'App\Domains\Subject\Controllers\SubjectController@update');
+    $router->delete('/{id}', 'App\Domains\Subject\Controllers\SubjectController@destroy');
 });
 
-$router->get('/report/books-by-author', [ReportController::class, 'booksByAuthor']);
-$router->get('/report', [ReportController::class, 'index']);
-$router->get('/relatorio/pdf', [ReportController::class, 'exportPdf']);
+$router->group(['prefix' => 'report'], function () use ($router) {
+    $router->get('/', 'App\Domains\Report\Controllers\ReportController@index');
+    $router->get('/books-by-author', 'App\Domains\Report\Controllers\ReportController@booksByAuthor');
+    $router->get('/pdf', 'App\Domains\Report\Controllers\ReportController@exportPdf');
+});
