@@ -2,21 +2,26 @@
 
 namespace Tests\Unit\Services;
 
+use App\Domains\Subject\DTO\CreateSubjectDTO;
+use App\Domains\Subject\DTO\UpdateSubjectDTO;
+use App\Domains\Subject\Repositories\Contracts\SubjectRepositoryInterface;
+use App\Domains\Subject\Services\SubjectService;
 use App\Models\Subject;
-use App\Repositories\Contracts\SubjectRepositoryInterface;
-use App\Services\SubjectService;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class SubjectServiceTest extends TestCase
 {
+    /** @var SubjectRepositoryInterface&MockObject */
     protected $repoMock;
-    protected $service;
+
+    protected SubjectService $service;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        /** @var SubjectRepositoryInterface&\PHPUnit\Framework\MockObject\MockObject */
         $this->repoMock = $this->createMock(SubjectRepositoryInterface::class);
         $this->service = new SubjectService($this->repoMock);
     }
@@ -26,7 +31,7 @@ class SubjectServiceTest extends TestCase
         $this->repoMock
             ->expects($this->once())
             ->method('all')
-            ->willReturn(collect([
+            ->willReturn(new EloquentCollection([
                 new Subject(['id' => 1, 'description' => 'História']),
                 new Subject(['id' => 2, 'description' => 'Tecnologia']),
             ]));
@@ -56,34 +61,38 @@ class SubjectServiceTest extends TestCase
     {
         $data = ['description' => 'Física'];
 
-        $subject = new Subject($data);
+        $mockSubject = $this->createMock(Subject::class);
+        $mockSubject->method('load')->with('books')->willReturnSelf();
 
         $this->repoMock
             ->expects($this->once())
             ->method('create')
             ->with($data)
-            ->willReturn($subject);
+            ->willReturn($mockSubject);
 
-        $result = $this->service->create($data);
+        $result = $this->service->create(CreateSubjectDTO::fromArray($data));
 
-        $this->assertEquals('Física', $result->description);
+        $this->assertInstanceOf(Subject::class, $result);
+        $this->assertSame($mockSubject, $result);
     }
 
     public function testUpdateSubject()
     {
         $data = ['description' => 'Química'];
 
-        $subject = new Subject($data);
+        $mockSubject = $this->createMock(Subject::class);
+        $mockSubject->method('load')->with('books')->willReturnSelf();
 
         $this->repoMock
             ->expects($this->once())
             ->method('update')
             ->with(1, $data)
-            ->willReturn($subject);
+            ->willReturn($mockSubject);
 
-        $result = $this->service->update(1, $data);
+        $result = $this->service->update(1, UpdateSubjectDTO::fromArray($data));
 
-        $this->assertEquals('Química', $result->description);
+        $this->assertInstanceOf(Subject::class, $result);
+        $this->assertSame($mockSubject, $result);
     }
 
     public function testDeleteSubject()

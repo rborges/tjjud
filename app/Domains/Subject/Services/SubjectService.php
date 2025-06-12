@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Services;
+namespace App\Domains\Subject\Services;
 
-use App\Models\Subject;
-use App\Repositories\Contracts\SubjectRepositoryInterface;
-use App\Services\Contracts\SubjectServiceInterface;
+use App\Domains\Subject\DTO\CreateSubjectDTO;
+use App\Domains\Subject\DTO\UpdateSubjectDTO;
+use App\Domains\Subject\Repositories\Contracts\SubjectRepositoryInterface;
+use App\Domains\Subject\Services\Contracts\SubjectServiceInterface;
 use App\Exceptions\NotFoundException;
+use App\Models\Subject;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -16,6 +18,9 @@ class SubjectService implements SubjectServiceInterface
 {
     protected SubjectRepositoryInterface $repo;
 
+    /**
+     * Injeta a dependência do repositório de assuntos.
+     */
     public function __construct(SubjectRepositoryInterface $repo)
     {
         $this->repo = $repo;
@@ -24,7 +29,7 @@ class SubjectService implements SubjectServiceInterface
     /**
      * Retorna todos os assuntos cadastrados.
      *
-     * @return Collection
+     * @return Collection<Subject>
      */
     public function list(): Collection
     {
@@ -36,7 +41,6 @@ class SubjectService implements SubjectServiceInterface
      *
      * @param int $id
      * @return Subject
-     *
      * @throws NotFoundException
      */
     public function get(int $id): Subject
@@ -49,29 +53,44 @@ class SubjectService implements SubjectServiceInterface
     }
 
     /**
-     * Cria um novo assunto.
+     * Cria um novo assunto com livros vinculados.
      *
-     * @param array $data
+     * @param CreateSubjectDTO $dto
      * @return Subject
      */
-    public function create(array $data): Subject
+    public function create(CreateSubjectDTO $dto): Subject
     {
-        return $this->repo->create($data);
+        $subject = $this->repo->create([
+            'description' => $dto->description,
+        ]);
+
+        if (!empty($dto->book_ids)) {
+            $subject->books()->sync($dto->book_ids);
+        }
+
+        return $subject->load('books');
     }
 
     /**
-     * Atualiza um assunto existente.
+     * Atualiza os dados de um assunto.
      *
      * @param int $id
-     * @param array $data
+     * @param UpdateSubjectDTO $dto
      * @return Subject
-     *
      * @throws NotFoundException
      */
-    public function update(int $id, array $data): Subject
+    public function update(int $id, UpdateSubjectDTO $dto): Subject
     {
         try {
-            return $this->repo->update($id, $data);
+            $subject = $this->repo->update($id, [
+                'description' => $dto->description,
+            ]);
+
+            if (!empty($dto->book_ids)) {
+                $subject->books()->sync($dto->book_ids);
+            }
+
+            return $subject->load('books');
         } catch (ModelNotFoundException $e) {
             throw new NotFoundException('Assunto não encontrado para atualização.');
         }
@@ -82,7 +101,6 @@ class SubjectService implements SubjectServiceInterface
      *
      * @param int $id
      * @return bool|null
-     *
      * @throws NotFoundException
      */
     public function delete(int $id): ?bool

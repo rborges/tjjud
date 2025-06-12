@@ -1,29 +1,29 @@
 <?php
 
-namespace App\Services\Contracts;
+namespace App\Domains\Subject\Repositories\Contracts;
 
 use App\Models\Subject;
 use Illuminate\Database\Eloquent\Collection;
 
-interface SubjectServiceInterface
+interface SubjectRepositoryInterface
 {
     /**
-     * Retorna a lista de assuntos cadastrados.
+     * Retorna todos os assuntos.
      *
      * @return Collection<Subject>
      */
-    public function list(): Collection;
+    public function all(): Collection;
 
     /**
-     * Retorna os dados de um assunto específico pelo ID.
+     * Retorna um assunto pelo ID.
      *
      * @param int $id
      * @return Subject
      */
-    public function get(int $id): Subject;
+    public function find(int $id): Subject;
 
     /**
-     * Cria um novo assunto com os dados fornecidos.
+     * Cria um novo assunto.
      *
      * @param array $data
      * @return Subject
